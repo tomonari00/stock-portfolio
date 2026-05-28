@@ -58,6 +58,7 @@ html,body{height:100%;background:var(--bg);color:var(--text);font-family:var(--s
 .up{color:var(--green);}
 .dn{color:var(--red);}
 .del-btn{padding:6px;color:var(--text3);background:none;border:none;cursor:pointer;font-size:16px;flex-shrink:0;}
+.edit-btn{padding:6px;color:var(--text3);background:none;border:none;cursor:pointer;font-size:14px;flex-shrink:0;}
 
 /* Detail */
 #detail{display:none;flex-direction:column;height:100%;height:100dvh;}
@@ -205,6 +206,21 @@ html,body{height:100%;background:var(--bg);color:var(--text);font-family:var(--s
   </div>
 </div>
 
+</div>
+
+<!-- Edit Modal -->
+<div class="modal-overlay" id="edit-modal">
+  <div class="modal">
+    <h2>✏️ 銘柄を編集</h2>
+    <label>銘柄名</label>
+    <input type="text" id="edit-name" />
+    <label>平均取得単価（円）</label>
+    <input type="number" id="edit-cost" inputmode="decimal" />
+    <label>保有株数</label>
+    <input type="number" id="edit-shares" inputmode="numeric" />
+    <button class="modal-save" onclick="saveEdit()">保存する</button>
+    <button class="modal-cancel" onclick="closeEdit()">キャンセル</button>
+  </div>
 </div>
 
 <!-- Settings Modal -->
@@ -439,6 +455,32 @@ async function fetchInfo(type){
     resultEl.innerHTML=`<div style="color:var(--red);font-size:13px;line-height:1.6">⚠️ ${e.message}<br><br>APIキーを確認してください。</div>`;
   }
 }
+
+let editIdx=-1;
+function openEdit(idx){
+  editIdx=idx;
+  const s=stocks[idx];
+  document.getElementById('edit-name').value=s.name;
+  document.getElementById('edit-cost').value=s.cost||'';
+  document.getElementById('edit-shares').value=s.shares||'';
+  document.getElementById('edit-modal').classList.add('open');
+}
+function closeEdit(){
+  document.getElementById('edit-modal').classList.remove('open');
+}
+function saveEdit(){
+  const name=document.getElementById('edit-name').value.trim();
+  const cost=parseFloat(document.getElementById('edit-cost').value)||null;
+  const shares=parseInt(document.getElementById('edit-shares').value)||null;
+  if(!name){alert('銘柄名を入力してください');return;}
+  stocks[editIdx].name=name;
+  stocks[editIdx].cost=cost;
+  stocks[editIdx].shares=shares;
+  save();
+  renderList();
+  closeEdit();
+}
+document.getElementById('edit-modal').addEventListener('click',function(e){if(e.target===this)closeEdit();});
 
 function openSettings(){document.getElementById('api-key-input').value=apiKey;document.getElementById('settings-modal').classList.add('open');}
 function closeSettings(){document.getElementById('settings-modal').classList.remove('open');}

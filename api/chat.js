@@ -1,45 +1,37 @@
 export default async function handler(req, res) {
-  if (req.method !== 'GET') {
+  if (req.method !== 'POST') {
     return res.status(405).json({ error: 'Method not allowed' });
   }
 
-  const { code } = req.query;
-  if (!code) {
-    return res.status(400).json({ error: 'code is required' });
+  const { prompt } = req.body;
+
+  if (!prompt) {
+    return res.status(400).json({ error: 'Prompt is required' });
   }
 
   try {
-    // Yahoo Finance APIで日本株取得（証券コード.T形式）
-    const ticker = `${code}.T`;
-    const url = `https://query1.finance.yahoo.com/v8/finance/chart/${ticker}?interval=1d&range=1d`;
-    
-    const response = await fetch(url, {
+    const response = await fetch('https://api.anthropic.com/v1/messages', {
+      method: 'POST',
       headers: {
-        'User-Agent': 'Mozilla/5.0',
-      }
+        'Content-Type': 'application/json',
+        'x-api-key': process.env.ANTHROPIC_API_KEY,
+        'anthropic-version': '2023-06-01',
+      },
+      body: JSON.stringify({
+        model: 'claude-haiku-4-5-20251001',
+        max_tokens: 1000,
+        messages: [{ role: 'user', content: prompt }],
+      }),
     });
 
     if (!response.ok) {
-      throw new Error('株価の取得に失敗しました');
+      const error = await response.json();
+      return res.status(response.status).json({ error: error.error?.message || 'API Error' });
     }
 
     const data = await response.json();
-    const result = data.chart?.result?.[0];
-    
-    if (!result) {
-      throw new Error('データが見つかりません');
-    }
-
-    const meta = result.meta;
-    const price = meta.regularMarketPrice;
-    const prevClose = meta.chartPreviousClose || meta.previousClose;
-    const change = prevClose ? ((price - prevClose) / prevClose * 100) : null;
-
-    return res.status(200).json({
-      price: Math.round(price),
-      change: change ? Math.round(change * 10) / 10 : null,
-    });
-
+    const text = (data.content || []).filter(b => b.type === 'text').map(b => b.text).join('\n');
+    return res.status(200).json({ text });
   } catch (error) {
     return res.status(500).json({ error: error.message });
   }

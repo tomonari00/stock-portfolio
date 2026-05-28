@@ -20,6 +20,7 @@ export default async function handler(req, res) {
       body: JSON.stringify({
         model: 'claude-haiku-4-5-20251001',
         max_tokens: 1000,
+        tools: [{ type: 'web_search_20250305', name: 'web_search' }],
         messages: [{ role: 'user', content: prompt }],
       }),
     });
@@ -30,7 +31,7 @@ export default async function handler(req, res) {
     }
 
     const data = await response.json();
-    const text = data.content.filter(b => b.type === 'text').map(b => b.text).join('\n');
+    const text = (data.content || []).filter(b => b.type === 'text').map(b => b.text).join('\n');
     return res.status(200).json({ text });
   } catch (error) {
     return res.status(500).json({ error: error.message });

@@ -1,1 +1,432 @@
-file:///C:/Users/tomos/Downloads/index_1.html
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="株ポートフォリオ">
+<title>株ポートフォリオ</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;500;700&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+:root{--bg:#0a0a0f;--surface:#13131a;--surface2:#1c1c26;--border:rgba(255,255,255,0.07);--text:#f0f0f5;--text2:#8888aa;--text3:#55556a;--green:#00e5a0;--green-dim:rgba(0,229,160,0.12);--red:#ff5c7a;--red-dim:rgba(255,92,122,0.12);--accent:#7c6aff;--accent-dim:rgba(124,106,255,0.15);--mono:'DM Mono',monospace;--sans:'Noto Sans JP',sans-serif;}
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent;}
+html,body{height:100%;background:var(--bg);color:var(--text);font-family:var(--sans);overflow:hidden;}
+#app{display:flex;flex-direction:column;height:100%;height:100dvh;}
+
+/* Header */
+.header{padding:52px 20px 12px;background:var(--bg);border-bottom:1px solid var(--border);}
+.header-top{display:flex;justify-content:space-between;align-items:flex-start;}
+.header h1{font-size:22px;font-weight:700;letter-spacing:-0.5px;}
+.api-status{display:inline-flex;align-items:center;gap:5px;font-size:11px;font-family:var(--mono);margin-top:3px;}
+.status-dot{width:6px;height:6px;border-radius:50%;}
+.status-ok{background:var(--green);}
+.status-ng{background:var(--red);}
+.header-right{text-align:right;}
+.total-label{font-size:10px;color:var(--text3);font-family:var(--mono);}
+.total-val{font-size:16px;font-weight:700;font-family:var(--mono);color:var(--text);}
+.pnl-val{font-size:12px;font-family:var(--mono);margin-top:1px;}
+
+/* Tabs */
+.tabs{display:flex;border-bottom:1px solid var(--border);background:var(--bg);}
+.tab{flex:1;padding:11px 4px;text-align:center;font-size:13px;font-weight:500;color:var(--text2);border-bottom:2px solid transparent;cursor:pointer;background:none;border-top:none;border-left:none;border-right:none;transition:color .2s;}
+.tab.active{color:var(--accent);border-bottom-color:var(--accent);}
+
+/* Scroll */
+.scroll-area{flex:1;overflow-y:auto;-webkit-overflow-scrolling:touch;padding:14px 16px 100px;}
+
+/* Add bar */
+.add-bar{display:grid;grid-template-columns:72px 1fr 72px 54px 36px;gap:6px;margin-bottom:14px;}
+.add-bar input{background:var(--surface);border:1px solid var(--border);border-radius:8px;color:var(--text);font-family:var(--sans);font-size:13px;padding:8px 8px;outline:none;width:100%;}
+.add-bar input:focus{border-color:var(--accent);}
+.add-bar input[placeholder="単価"]{font-family:var(--mono);}
+.add-bar input[placeholder="株数"]{font-family:var(--mono);}
+.add-bar button{background:var(--accent);color:#fff;border:none;border-radius:8px;font-size:20px;cursor:pointer;line-height:1;}
+
+/* Stock card */
+.stock-card{background:var(--surface);border:1px solid var(--border);border-radius:14px;margin-bottom:8px;overflow:hidden;}
+.card-main{display:flex;align-items:center;padding:12px 14px;gap:10px;cursor:pointer;}
+.stock-badge{width:40px;height:40px;border-radius:9px;display:flex;align-items:center;justify-content:center;font-family:var(--mono);font-size:10px;font-weight:500;flex-shrink:0;line-height:1.2;text-align:center;}
+.card-info{flex:1;min-width:0;}
+.card-name{font-size:14px;font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.card-sub{font-size:11px;color:var(--text2);font-family:var(--mono);margin-top:2px;}
+.card-right{text-align:right;flex-shrink:0;}
+.card-price{font-size:15px;font-weight:700;font-family:var(--mono);}
+.card-change{font-size:11px;font-family:var(--mono);margin-top:1px;}
+.card-pnl{font-size:11px;font-family:var(--mono);margin-top:1px;}
+.up{color:var(--green);}
+.dn{color:var(--red);}
+.del-btn{padding:6px;color:var(--text3);background:none;border:none;cursor:pointer;font-size:16px;flex-shrink:0;}
+
+/* Detail */
+#detail{display:none;flex-direction:column;height:100%;height:100dvh;}
+#detail.active{display:flex;}
+#list-view{display:flex;flex-direction:column;height:100%;}
+#list-view.hidden{display:none;}
+.detail-header{padding:52px 16px 14px;background:var(--bg);border-bottom:1px solid var(--border);}
+.back-btn{display:flex;align-items:center;gap:6px;color:var(--accent);font-size:15px;background:none;border:none;cursor:pointer;margin-bottom:10px;padding:0;}
+.detail-badge{width:46px;height:46px;border-radius:11px;display:flex;align-items:center;justify-content:center;font-family:var(--mono);font-size:10px;font-weight:700;margin-bottom:8px;text-align:center;line-height:1.3;}
+.detail-title{font-size:19px;font-weight:700;}
+.detail-code{font-size:12px;color:var(--text2);font-family:var(--mono);margin-top:2px;}
+.detail-scroll{flex:1;overflow-y:auto;-webkit-overflow-scrolling:touch;padding:14px 16px 100px;}
+
+/* Metrics */
+.metric-row{display:grid;grid-template-columns:repeat(3,1fr);gap:7px;margin-bottom:12px;}
+.metric-card{background:var(--surface);border:1px solid var(--border);border-radius:11px;padding:10px 10px;}
+.metric-label{font-size:10px;color:var(--text3);font-family:var(--mono);margin-bottom:5px;}
+.metric-val{font-size:16px;font-weight:700;font-family:var(--mono);}
+
+/* PnL summary card */
+.pnl-card{background:var(--surface);border:1px solid var(--border);border-radius:11px;padding:12px 14px;margin-bottom:12px;display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;}
+.pnl-item{}
+.pnl-item-label{font-size:10px;color:var(--text3);font-family:var(--mono);margin-bottom:4px;}
+.pnl-item-val{font-size:14px;font-weight:700;font-family:var(--mono);}
+
+/* Action buttons */
+.action-grid{display:grid;grid-template-columns:1fr 1fr;gap:7px;margin-bottom:12px;}
+.action-btn{background:var(--surface2);border:1px solid var(--border);border-radius:11px;padding:12px 10px;cursor:pointer;text-align:left;color:var(--text);}
+.action-btn:active{border-color:var(--accent);background:var(--accent-dim);}
+.action-btn-icon{font-size:20px;margin-bottom:5px;}
+.action-btn-label{font-size:13px;font-weight:700;display:block;}
+.action-btn-sub{font-size:10px;color:var(--text2);margin-top:1px;display:block;}
+
+/* AI Result */
+.ai-result-card{background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:14px;min-height:100px;}
+.ai-result-label{font-size:10px;color:var(--text3);font-family:var(--mono);margin-bottom:8px;letter-spacing:.05em;}
+.ai-text{font-size:14px;line-height:1.75;color:var(--text);white-space:pre-wrap;}
+.ai-placeholder{font-size:13px;color:var(--text3);line-height:1.6;}
+.loading-dots{display:flex;gap:5px;align-items:center;padding:6px 0;}
+.dot{width:6px;height:6px;border-radius:50%;background:var(--accent);animation:blink 1.2s infinite;}
+.dot:nth-child(2){animation-delay:.2s;}.dot:nth-child(3){animation-delay:.4s;}
+@keyframes blink{0%,100%{opacity:.2}50%{opacity:1}}
+
+/* News tab */
+.news-card{background:var(--surface);border:1px solid var(--border);border-radius:14px;margin-bottom:8px;padding:12px 14px;}
+.news-stock-name{font-size:11px;color:var(--accent);font-weight:700;margin-bottom:7px;font-family:var(--mono);}
+.news-fetch-btn{width:100%;background:var(--surface2);border:1px solid var(--border);border-radius:9px;padding:9px;color:var(--text2);font-size:13px;cursor:pointer;}
+
+/* Dividend tab */
+.div-card{background:var(--surface);border:1px solid var(--border);border-radius:14px;margin-bottom:8px;}
+.div-row{display:flex;justify-content:space-between;align-items:center;padding:12px 14px;border-bottom:1px solid var(--border);}
+.div-row:last-child{border-bottom:none;}
+.div-name{font-size:14px;font-weight:700;}
+.div-code{font-size:11px;color:var(--text2);font-family:var(--mono);}
+.div-fetch-btn{background:var(--accent-dim);border:1px solid rgba(124,106,255,.3);color:var(--accent);border-radius:7px;padding:6px 11px;font-size:12px;cursor:pointer;font-family:var(--mono);}
+
+/* Empty */
+.empty{text-align:center;padding:60px 20px;color:var(--text3);}
+.empty-icon{font-size:40px;margin-bottom:12px;}
+
+/* Modal */
+.modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,.8);z-index:100;display:none;align-items:flex-end;}
+.modal-overlay.open{display:flex;}
+.modal{background:var(--surface);border-radius:20px 20px 0 0;padding:24px 20px 44px;width:100%;}
+.modal h2{font-size:17px;font-weight:700;margin-bottom:14px;}
+.modal label{font-size:13px;color:var(--text2);display:block;margin-bottom:5px;}
+.modal input{width:100%;background:var(--bg);border:1px solid var(--border);border-radius:10px;color:var(--text);font-family:var(--mono);font-size:14px;padding:11px;outline:none;margin-bottom:14px;}
+.modal input:focus{border-color:var(--accent);}
+.modal-note{font-size:12px;color:var(--text3);line-height:1.6;margin-bottom:18px;}
+.modal-save{width:100%;background:var(--accent);color:#fff;border:none;border-radius:11px;padding:14px;font-size:15px;font-weight:700;cursor:pointer;}
+.modal-cancel{width:100%;background:none;border:none;color:var(--text2);padding:11px;font-size:14px;cursor:pointer;margin-top:6px;}
+.settings-btn{background:none;border:none;color:var(--text2);font-size:22px;cursor:pointer;padding:4px;}
+</style>
+</head>
+<body>
+<div id="app">
+
+<!-- LIST VIEW -->
+<div id="list-view">
+  <div class="header">
+    <div class="header-top">
+      <div>
+        <h1>📈 マイ株</h1>
+        <div class="api-status">
+          <span class="status-dot" id="status-dot"></span>
+          <span id="status-text">APIキー未設定</span>
+        </div>
+      </div>
+      <div style="display:flex;align-items:flex-start;gap:8px">
+        <div class="header-right">
+          <div class="total-label">取得総額</div>
+          <div class="total-val" id="total-cost">—</div>
+          <div class="pnl-val" id="total-pnl">—</div>
+        </div>
+        <button class="settings-btn" onclick="openSettings()">⚙️</button>
+      </div>
+    </div>
+  </div>
+  <div class="tabs">
+    <button class="tab active" onclick="switchTab('all',this)">一覧</button>
+    <button class="tab" onclick="switchTab('news',this)">ニュース</button>
+    <button class="tab" onclick="switchTab('dividend',this)">配当</button>
+  </div>
+  <div class="scroll-area">
+    <div class="add-bar">
+      <input id="add-code" placeholder="コード" maxlength="5" inputmode="numeric"/>
+      <input id="add-name" placeholder="銘柄名"/>
+      <input id="add-cost" placeholder="単価" inputmode="decimal"/>
+      <input id="add-shares" placeholder="株数" inputmode="numeric"/>
+      <button onclick="addStock()">＋</button>
+    </div>
+    <div id="stock-list"></div>
+  </div>
+</div>
+
+<!-- DETAIL VIEW -->
+<div id="detail">
+  <div class="detail-header">
+    <button class="back-btn" onclick="showList()">← 一覧</button>
+    <div class="detail-badge" id="detail-badge"></div>
+    <div class="detail-title" id="detail-name"></div>
+    <div class="detail-code" id="detail-code"></div>
+  </div>
+  <div class="detail-scroll">
+    <div class="metric-row">
+      <div class="metric-card"><div class="metric-label">現在株価</div><div class="metric-val" id="d-price">—</div></div>
+      <div class="metric-card"><div class="metric-label">取得単価</div><div class="metric-val" id="d-cost">—</div></div>
+      <div class="metric-card"><div class="metric-label">保有株数</div><div class="metric-val" id="d-shares">—</div></div>
+    </div>
+    <div class="pnl-card">
+      <div class="pnl-item"><div class="pnl-item-label">取得総額</div><div class="pnl-item-val" id="d-total-cost">—</div></div>
+      <div class="pnl-item"><div class="pnl-item-label">評価額</div><div class="pnl-item-val" id="d-eval">—</div></div>
+      <div class="pnl-item"><div class="pnl-item-label">含み損益</div><div class="pnl-item-val" id="d-pnl">—</div></div>
+    </div>
+    <div class="action-grid">
+      <button class="action-btn" onclick="fetchInfo('news')"><div class="action-btn-icon">📰</div><span class="action-btn-label">最新ニュース</span><span class="action-btn-sub">AIで取得</span></button>
+      <button class="action-btn" onclick="fetchInfo('earnings')"><div class="action-btn-icon">📊</div><span class="action-btn-label">決算情報</span><span class="action-btn-sub">売上・利益など</span></button>
+      <button class="action-btn" onclick="fetchInfo('dividend')"><div class="action-btn-icon">💴</div><span class="action-btn-label">配当情報</span><span class="action-btn-sub">利回り・権利日</span></button>
+      <button class="action-btn" onclick="fetchInfo('summary')"><div class="action-btn-icon">🤖</div><span class="action-btn-label">AI総合分析</span><span class="action-btn-sub">投資家向け要約</span></button>
+    </div>
+    <div class="ai-result-card">
+      <div class="ai-result-label">AI情報</div>
+      <div id="ai-result"><div class="ai-placeholder">上のボタンを押すとAIが最新情報を取得します</div></div>
+    </div>
+  </div>
+</div>
+
+</div>
+
+<!-- Settings Modal -->
+<div class="modal-overlay" id="settings-modal">
+  <div class="modal">
+    <h2>⚙️ 設定</h2>
+    <label>Anthropic APIキー</label>
+    <input type="password" id="api-key-input" placeholder="sk-ant-..." autocomplete="off"/>
+    <div class="modal-note">
+      APIキーはこのブラウザにのみ保存されます。<br>
+      取得: <strong>console.anthropic.com</strong> → API Keys → Create Key
+    </div>
+    <button class="modal-save" onclick="saveSettings()">保存する</button>
+    <button class="modal-cancel" onclick="closeSettings()">キャンセル</button>
+  </div>
+</div>
+
+<script>
+const COLORS=[
+  {bg:'#1a1a3a',text:'#7c6aff'},{bg:'#0a2a20',text:'#00e5a0'},
+  {bg:'#2a1520',text:'#ff5c7a'},{bg:'#2a2010',text:'#ffb84d'},
+  {bg:'#1a2a2a',text:'#00cfcf'},{bg:'#2a1a2a',text:'#cf7cff'},
+  {bg:'#1a2a10',text:'#8adf4a'},{bg:'#2a1a10',text:'#ff8a5c'},
+];
+
+const DEFAULT_STOCKS=[
+  {code:'8766',name:'東京海上HD',price:null,change:null,cost:6212,shares:20,color:0},
+  {code:'2003',name:'日東富士製粉',price:null,change:null,cost:1784,shares:60,color:1},
+  {code:'8309',name:'三井住友トラストG',price:null,change:null,cost:4216,shares:16,color:2},
+  {code:'4540',name:'ツムラ',price:null,change:null,cost:4079,shares:20,color:3},
+  {code:'3817',name:'SPAホールディングス',price:null,change:null,cost:4611,shares:15,color:4},
+  {code:'4452',name:'花王',price:null,change:null,cost:6050,shares:10,color:5},
+  {code:'4042',name:'東ソー',price:null,change:null,cost:2343,shares:20,color:6},
+  {code:'8058',name:'三菱商事',price:null,change:null,cost:2605,shares:10,color:7},
+  {code:'3003',name:'ヒューリック',price:null,change:null,cost:1472,shares:17,color:0},
+  {code:'4097',name:'高圧ガス工業',price:null,change:null,cost:1150,shares:25,color:1},
+  {code:'8593',name:'三菱HCキャピタル',price:null,change:null,cost:1000,shares:10,color:2},
+];
+
+let stocks=JSON.parse(localStorage.getItem('stocks')||'null')||JSON.parse(JSON.stringify(DEFAULT_STOCKS));
+let apiKey=localStorage.getItem('api_key')||'';
+let currentTab='all';
+let selectedIdx=-1;
+
+function save(){localStorage.setItem('stocks',JSON.stringify(stocks));}
+
+function fmt(n){return n!=null?'¥'+Math.round(n).toLocaleString():'—';}
+function fmtPnl(n){if(n==null)return'—';const s=n>=0?'+':'';return s+'¥'+Math.round(Math.abs(n)).toLocaleString();}
+function fmtPct(n){if(n==null)return'';const s=n>=0?'+':'';return' ('+s+n.toFixed(1)+'%)';}
+
+function init(){
+  updateApiStatus();
+  renderList();
+  save();
+}
+
+function updateApiStatus(){
+  const dot=document.getElementById('status-dot');
+  const txt=document.getElementById('status-text');
+  if(apiKey){dot.className='status-dot status-ok';txt.textContent='API接続済み';}
+  else{dot.className='status-dot status-ng';txt.textContent='APIキー未設定';}
+}
+
+function calcTotals(){
+  let totalCost=0,hasAll=true;
+  stocks.forEach(s=>{if(s.cost&&s.shares)totalCost+=s.cost*s.shares;else hasAll=false;});
+  document.getElementById('total-cost').textContent=totalCost?fmt(totalCost):'—';
+  document.getElementById('total-pnl').textContent='';
+}
+
+function switchTab(tab,el){
+  currentTab=tab;
+  document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));
+  el.classList.add('active');
+  renderList();
+}
+
+function renderList(){
+  calcTotals();
+  const container=document.getElementById('stock-list');
+  if(stocks.length===0){
+    container.innerHTML='<div class="empty"><div class="empty-icon">📭</div><div style="font-size:14px;color:var(--text3)">銘柄を追加してください</div></div>';
+    return;
+  }
+  if(currentTab==='news'){
+    container.innerHTML=stocks.map((s,i)=>`
+      <div class="news-card">
+        <div class="news-stock-name">${s.code} · ${s.name}</div>
+        <button class="news-fetch-btn" onclick="openDetailAndFetch(${i},'news')">📰 最新ニュースをAIで取得 →</button>
+      </div>`).join('');
+    return;
+  }
+  if(currentTab==='dividend'){
+    container.innerHTML='<div class="div-card">'+stocks.map((s,i)=>`
+      <div class="div-row">
+        <div><div class="div-name">${s.name}</div><div class="div-code">${s.code}</div></div>
+        <button class="div-fetch-btn" onclick="openDetailAndFetch(${i},'dividend')">配当を取得</button>
+      </div>`).join('')+'</div>';
+    return;
+  }
+  container.innerHTML=stocks.map((s,i)=>{
+    const c=COLORS[s.color%COLORS.length];
+    const priceStr=s.price?fmt(s.price):'—';
+    const changeClass=s.change>0?'up':s.change<0?'dn':'';
+    const changeStr=s.change!=null?(s.change>0?'+':'')+s.change+'%':'AI取得待ち';
+    const costStr=s.cost?fmt(s.cost):'—';
+    const sharesStr=s.shares?s.shares+'株':'—';
+    let pnlStr='',pnlClass='';
+    if(s.price&&s.cost&&s.shares){
+      const pnl=(s.price-s.cost)*s.shares;
+      const pct=((s.price-s.cost)/s.cost)*100;
+      pnlStr=(pnl>=0?'+':'')+Math.round(pnl).toLocaleString()+'円 ('+pct.toFixed(1)+'%)';
+      pnlClass=pnl>=0?'up':'dn';
+    }
+    return`<div class="stock-card">
+      <div class="card-main" onclick="showDetail(${i})">
+        <div class="stock-badge" style="background:${c.bg};color:${c.text}">${s.code}</div>
+        <div class="card-info">
+          <div class="card-name">${s.name}</div>
+          <div class="card-sub">取得${costStr} · ${sharesStr}</div>
+        </div>
+        <div class="card-right">
+          <div class="card-price">${priceStr}</div>
+          <div class="card-change ${changeClass}">${changeStr}</div>
+          ${pnlStr?`<div class="card-pnl ${pnlClass}">${pnlStr}</div>`:''}
+        </div>
+        <button class="del-btn" onclick="event.stopPropagation();removeStock(${i})">×</button>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+function addStock(){
+  const code=document.getElementById('add-code').value.trim();
+  const name=document.getElementById('add-name').value.trim();
+  const cost=parseFloat(document.getElementById('add-cost').value)||null;
+  const shares=parseInt(document.getElementById('add-shares').value)||null;
+  if(!code||!name){alert('証券コードと銘柄名を入力してください');return;}
+  if(stocks.find(s=>s.code===code)){alert('すでに登録済みです');return;}
+  stocks.push({code,name,price:null,change:null,cost,shares,color:stocks.length%COLORS.length});
+  ['add-code','add-name','add-cost','add-shares'].forEach(id=>document.getElementById(id).value='');
+  save();renderList();
+}
+
+function removeStock(idx){
+  if(!confirm(`「${stocks[idx].name}」を削除しますか？`))return;
+  stocks.splice(idx,1);save();renderList();
+}
+
+function showDetail(idx){
+  selectedIdx=idx;
+  const s=stocks[idx];
+  const c=COLORS[s.color%COLORS.length];
+  const badge=document.getElementById('detail-badge');
+  badge.textContent=s.code;badge.style.background=c.bg;badge.style.color=c.text;
+  document.getElementById('detail-name').textContent=s.name;
+  document.getElementById('detail-code').textContent=s.code+' · 東証';
+  document.getElementById('d-price').textContent=s.price?fmt(s.price):'—';
+  document.getElementById('d-cost').textContent=s.cost?fmt(s.cost):'—';
+  document.getElementById('d-shares').textContent=s.shares?s.shares+'株':'—';
+
+  const totalCost=s.cost&&s.shares?s.cost*s.shares:null;
+  const evalAmt=s.price&&s.shares?s.price*s.shares:null;
+  const pnl=evalAmt&&totalCost?evalAmt-totalCost:null;
+  const pct=pnl&&totalCost?(pnl/totalCost*100):null;
+
+  document.getElementById('d-total-cost').textContent=fmt(totalCost);
+  document.getElementById('d-eval').textContent=fmt(evalAmt);
+  const pnlEl=document.getElementById('d-pnl');
+  if(pnl!=null){
+    pnlEl.textContent=fmtPnl(pnl)+fmtPct(pct);
+    pnlEl.className='pnl-item-val '+(pnl>=0?'up':'dn');
+  }else{pnlEl.textContent='—';pnlEl.className='pnl-item-val';}
+
+  document.getElementById('ai-result').innerHTML='<div class="ai-placeholder">上のボタンを押すとAIが最新情報を取得します</div>';
+  document.getElementById('list-view').classList.add('hidden');
+  document.getElementById('detail').classList.add('active');
+}
+
+function showList(){
+  document.getElementById('list-view').classList.remove('hidden');
+  document.getElementById('detail').classList.remove('active');
+}
+
+function openDetailAndFetch(idx,type){showDetail(idx);setTimeout(()=>fetchInfo(type),120);}
+
+async function fetchInfo(type){
+  if(!apiKey){
+    document.getElementById('ai-result').innerHTML='<div style="color:var(--red);font-size:14px;line-height:1.6">⚠️ APIキーが設定されていません。<br>右上の ⚙️ から設定してください。</div>';
+    return;
+  }
+  const s=stocks[selectedIdx];
+  const labels={news:'最新ニュース',earnings:'決算情報',dividend:'配当情報',summary:'AI総合分析'};
+  const prompts={
+    news:`日本株の${s.name}（証券コード:${s.code}）の最新ニュースを3〜5件、箇条書きで教えてください。各ニュースに日付と概要を含めてください。`,
+    earnings:`日本株の${s.name}（証券コード:${s.code}）の直近の決算情報（売上高、営業利益、純利益、前年比）を教えてください。次回決算予定日も含めてください。`,
+    dividend:`日本株の${s.name}（証券コード:${s.code}）の配当情報を教えてください。直近の配当金額・配当利回り・権利確定日・配当性向を含めてください。`,
+    summary:`日本株の${s.name}（証券コード:${s.code}）について、個人投資家向けに現状を簡潔にまとめてください。強み・リスク・今後の注目点を含めて300字程度で。`
+  };
+  const resultEl=document.getElementById('ai-result');
+  resultEl.innerHTML=`<div class="loading-dots"><div class="dot"></div><div class="dot"></div><div class="dot"></div><span style="margin-left:6px;font-size:13px;color:var(--text2)">${labels[type]}を取得中...</span></div>`;
+  try{
+    const res=await fetch('https://api.anthropic.com/v1/messages',{
+      method:'POST',
+      headers:{'Content-Type':'application/json','x-api-key':apiKey,'anthropic-version':'2023-06-01','anthropic-dangerous-direct-browser-calls':'true'},
+      body:JSON.stringify({model:'claude-haiku-4-5-20251001',max_tokens:1000,tools:[{type:'web_search_20250305',name:'web_search'}],messages:[{role:'user',content:prompts[type]}]})
+    });
+    if(!res.ok){const e=await res.json();throw new Error(e.error?.message||'APIエラー');}
+    const data=await res.json();
+    const text=data.content.filter(b=>b.type==='text').map(b=>b.text).join('\n');
+    resultEl.innerHTML=`<div class="ai-result-label">${labels[type]}</div><div class="ai-text">${text||'情報を取得できませんでした。'}</div>`;
+  }catch(e){
+    resultEl.innerHTML=`<div style="color:var(--red);font-size:13px;line-height:1.6">⚠️ ${e.message}<br><br>APIキーを確認してください。</div>`;
+  }
+}
+
+function openSettings(){document.getElementById('api-key-input').value=apiKey;document.getElementById('settings-modal').classList.add('open');}
+function closeSettings(){document.getElementById('settings-modal').classList.remove('open');}
+function saveSettings(){apiKey=document.getElementById('api-key-input').value.trim();localStorage.setItem('api_key',apiKey);updateApiStatus();closeSettings();}
+document.getElementById('settings-modal').addEventListener('click',function(e){if(e.target===this)closeSettings();});
+
+init();
+</script>
+</body>
+</html>

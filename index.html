@@ -369,7 +369,7 @@ function renderList(){
           <div class="card-change ${changeClass}">${changeStr}</div>
           ${pnlStr?`<div class="card-pnl ${pnlClass}">${pnlStr}</div>`:''}
         </div>
-        <button class="del-btn" onclick="event.stopPropagation();removeStock(${i})">×</button>
+        <button class="edit-btn" onclick="event.stopPropagation();openEdit(${i})">✏️</button><button class="del-btn" onclick="event.stopPropagation();removeStock(${i})">×</button>
       </div>
     </div>`;
   }).join('');

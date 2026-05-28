@@ -152,7 +152,7 @@ html,body{height:100%;background:var(--bg);color:var(--text);font-family:var(--s
           <div class="total-val" id="total-cost">—</div>
           <div class="pnl-val" id="total-pnl">—</div>
         </div>
-        <button class="settings-btn" onclick="openSettings()">⚙️</button>
+        
       </div>
     </div>
   </div>
@@ -286,8 +286,8 @@ async function fetchAllPrices(){
 function updateApiStatus(){
   const dot=document.getElementById('status-dot');
   const txt=document.getElementById('status-text');
-  if(apiKey){dot.className='status-dot status-ok';txt.textContent='API接続済み';}
-  else{dot.className='status-dot status-ng';txt.textContent='APIキー未設定';}
+  dot.className='status-dot status-ok';
+  txt.textContent='API接続済み';
 }
 
 function calcTotals(){
